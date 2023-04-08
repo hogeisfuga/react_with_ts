@@ -79,11 +79,11 @@ const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query='
 const App = () => {
   const [searchTerm, setSearchTerm] = useStorageState('search')
   const [storiesState, dispatchStories] = React.useReducer(storiesReducer, { stories: [], loading: false, isError: false})
+  const [url, setUrl] = React.useState<string>(`${API_ENDPOINT}${searchTerm}`)
 
   const handleFetchStories = React.useCallback(()=> {
-    console.log("called")
     dispatchStories({ type: StoryActionType.FETCH_INIT })
-    fetch(`${API_ENDPOINT}${searchTerm}`)
+    fetch(url)
       .then(res => res.json())
       .then((res) => {
         dispatchStories({ type: StoryActionType.SET_STORIES, payload: res.hits })
@@ -91,12 +91,11 @@ const App = () => {
       .catch(() => {
         dispatchStories({ type: StoryActionType.FETCH_ERROR })
       })
-  },[searchTerm])
+  },[url])
 
   React.useEffect(() => {
-    if(!searchTerm) return    
     handleFetchStories()
-    }, [searchTerm, handleFetchStories])
+  }, [handleFetchStories])
 
   const hanleDeleteStory = (id: number) => {
     const story = storiesState.stories.find(item => item.objectID === id)
@@ -110,6 +109,10 @@ const App = () => {
     setSearchTerm(event.target.value);
   };
 
+  const handleSearchSubmit = () => {
+    setUrl(`${API_ENDPOINT}${searchTerm}`)
+  }
+
   return (
     <div>
       <h1>My Hacker Stories</h1>
@@ -122,6 +125,7 @@ const App = () => {
       >
         Search
       </InputWithLabel>
+      <button onClick={handleSearchSubmit} disabled={!searchTerm}>search</button>
 
       <hr />
       { storiesState.isError && <p>something went wrong</p>}

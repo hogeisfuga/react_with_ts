@@ -1,4 +1,5 @@
 import * as React from 'react';
+import axios from 'axios'
 
 type Story = {
   objectID: number;
@@ -81,16 +82,14 @@ const App = () => {
   const [storiesState, dispatchStories] = React.useReducer(storiesReducer, { stories: [], loading: false, isError: false})
   const [url, setUrl] = React.useState<string>(`${API_ENDPOINT}${searchTerm}`)
 
-  const handleFetchStories = React.useCallback(()=> {
+  const handleFetchStories = React.useCallback( async()=> {
     dispatchStories({ type: StoryActionType.FETCH_INIT })
-    fetch(url)
-      .then(res => res.json())
-      .then((res) => {
-        dispatchStories({ type: StoryActionType.SET_STORIES, payload: res.hits })
-      })
-      .catch(() => {
-        dispatchStories({ type: StoryActionType.FETCH_ERROR })
-      })
+    try {
+      const res = await axios.get(url)
+      dispatchStories({ type: StoryActionType.SET_STORIES, payload: res.data.hits })
+    } catch {
+      dispatchStories({ type: StoryActionType.FETCH_ERROR })
+    }
   },[url])
 
   React.useEffect(() => {

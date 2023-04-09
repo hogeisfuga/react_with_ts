@@ -1,6 +1,6 @@
 import * as React from 'react';
 import axios from 'axios'
-import { Stories, storiesReducer, StoryActionType } from './AppReducer';
+import { storiesReducer, StoryActionType } from './AppReducer';
 import { useStorageState } from '../common/hooks/useStorageState';
 import { SearchForm } from '../SeachForm/SearchForm';
 import { List } from '../List/List';

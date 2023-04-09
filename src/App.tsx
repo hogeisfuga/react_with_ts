@@ -84,10 +84,12 @@ const App = () => {
 
   const handleFetchStories = React.useCallback( async()=> {
     dispatchStories({ type: StoryActionType.FETCH_INIT })
+    const controller = new AbortController()
     try {
-      const res = await axios.get(url)
+      const res = await axios.get(url, { signal: controller.signal })
       dispatchStories({ type: StoryActionType.SET_STORIES, payload: res.data.hits })
-    } catch {
+    } catch(e) {
+      controller.abort()
       dispatchStories({ type: StoryActionType.FETCH_ERROR })
     }
   },[url])
@@ -108,23 +110,16 @@ const App = () => {
     setSearchTerm(event.target.value);
   };
 
-  const handleSearchSubmit = () => {
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     setUrl(`${API_ENDPOINT}${searchTerm}`)
   }
 
   return (
     <div>
       <h1>My Hacker Stories</h1>
-      <InputWithLabel
-        id='search'
-        search={searchTerm}
-        onInputChange={handleSearch}
-        value={searchTerm}
-        isFocused
-      >
-        Search
-      </InputWithLabel>
-      <button onClick={handleSearchSubmit} disabled={!searchTerm}>search</button>
+
+      <SearchForm handleSearch={handleSearch} handleSearchSubmit={handleSearchSubmit} searchTerm={searchTerm}/>
 
       <hr />
       { storiesState.isError && <p>something went wrong</p>}
@@ -132,6 +127,30 @@ const App = () => {
     </div>
   );
 };
+
+type SearchFormProps = {
+  searchTerm: string
+  handleSearchSubmit: (event: React.FormEvent<HTMLFormElement>) => void
+  handleSearch: (event: React.ChangeEvent<HTMLInputElement>) => void
+}
+const SearchForm: React.FC<SearchFormProps> = ({
+  searchTerm,
+  handleSearchSubmit,
+  handleSearch
+}) => (
+  <form onSubmit={handleSearchSubmit}>
+    <InputWithLabel
+      id='search'
+      search={searchTerm}
+      onInputChange={handleSearch}
+      value={searchTerm}
+      isFocused
+    >
+      Search
+    </InputWithLabel>
+    <button type='submit' disabled={!searchTerm}>search</button>
+  </form>
+)
 
 type InputWithLabelProps = {
   id: string,
